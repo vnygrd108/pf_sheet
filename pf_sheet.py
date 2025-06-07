@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, send_file
 import pandas as pd
 import os
+import numpy as np
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -18,8 +19,10 @@ def index():
             # Read and process the Excel file
             df = pd.read_excel(file_path)
             pf = df[['Employee Name','UAN Number','PF Number','Basic','DA','Employee PF','Actual Monthly Gross']].copy()
+            pf['Employee PF'] = pf['Employee PF'].replace(['', 'null', 'NULL'], np.nan)
+            # Drop rows where Employee PF is 0 or null
+            pf = pf[~((pf['Employee PF'].isna()) | (pf['Employee PF'] == 0))]
             pf['UAN Number'] = pf['UAN Number'].astype('Int64').astype(str)
-            pf = pf.dropna()
             pf2 = pf.reset_index(drop=True)
             pf2['Total'] = pf2['Basic'] + pf2['DA']
             pf2['PF 12%'] = pf2['Total'] * 0.12
@@ -33,7 +36,7 @@ def index():
             pf3.insert(insert_pos, 'Project', '')
 
             # Save to Excel
-            output_path = 'Prayag_2025-26.xlsx'
+            output_path = 'Prayag_PF_Sheet_2025-26.xlsx'
             pf3.to_excel(output_path, index=False)
 
             # Show table in HTML
@@ -43,7 +46,7 @@ def index():
 
 @app.route('/download')
 def download():
-    return send_file('Prayag_2025-26.xlsx', as_attachment=True)
+    return send_file('Prayag_PF_Sheet_2025-26.xlsx', as_attachment=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
