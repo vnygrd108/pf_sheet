@@ -18,14 +18,20 @@ def index():
 
             # Read and process the Excel file
             df = pd.read_excel(file_path)
-            pf = df[['Employee Name','UAN Number','PF Number','Basic','DA','Employee PF','Actual Monthly Gross']].copy()
+            pf = df[['Employee Name','UAN Number','PF Number','Basic','DA','Employee PF','Actual Monthly Gross', 'HRA']].copy()
             pf['Employee PF'] = pf['Employee PF'].replace(['', 'null', 'NULL'], np.nan)
             # Drop rows where Employee PF is 0 or null
             pf = pf[~((pf['Employee PF'].isna()) | (pf['Employee PF'] == 0))]
             pf['UAN Number'] = pf['UAN Number'].astype('Int64').astype(str)
             pf2 = pf.reset_index(drop=True)
             pf2['Total'] = pf2['Basic'] + pf2['DA']
-            pf2['PF 12%'] = pf2['Total'] * 0.12
+            
+            pf2['PF 12%'] = np.where(
+                pf2['Actual Monthly Gross'] - pf2['HRA'] > 15000,
+                1800,
+                0.12 * (pf2['Actual Monthly Gross'] - pf2['HRA'])
+            )
+
             pf2['Pen'] = pf2['Total'] * 0.0833
             pf2['Bal'] = pf2['PF 12%'] - pf2['Pen']
             cols_to_convert = ['PF 12%', 'Pen', 'Bal']
