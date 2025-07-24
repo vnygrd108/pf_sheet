@@ -27,7 +27,7 @@ def process_pf_excel(filepath):
     columns_to_round = ['Actual Monthly Gross', 'PF Salary', 'PF 12%', 'Bal', 'Pen']
     pf_final[columns_to_round] = pf_final[columns_to_round].astype(float).round(1)
 
-    output_path = os.path.join(app.config['PROCESSED_FOLDER'], 'Prayag_2025-26.xlsx')
+    output_path = os.path.join(app.config['PROCESSED_FOLDER'], 'PF_Data_2025-26.xlsx')
     pf_final.to_excel(output_path, index=False)
 
     return pf_final, output_path
